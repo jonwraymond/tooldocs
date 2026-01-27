@@ -2,11 +2,6 @@ module github.com/jonwraymond/tooldocs
 
 go 1.24.4
 
-replace (
-	github.com/jonwraymond/toolindex => ../toolindex
-	github.com/jonwraymond/toolmodel => ../toolmodel
-)
-
 require (
 	github.com/jonwraymond/toolindex v0.1.0
 	github.com/jonwraymond/toolmodel v0.1.0
