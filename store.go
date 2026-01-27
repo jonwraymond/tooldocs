@@ -43,10 +43,10 @@ type Store interface {
 	// Returns ErrInvalidDetail if level is not a valid DetailLevel constant.
 	DescribeTool(id string, level DetailLevel) (ToolDoc, error)
 
-	// ListExamples returns up to max examples for a tool.
-	// The effective limit is min(max, StoreOptions.MaxExamples) when both are set.
+	// ListExamples returns up to maxExamples examples for a tool.
+	// The effective limit is min(maxExamples, StoreOptions.MaxExamples) when both are set.
 	// Returns ErrNotFound if the tool is not registered in docs or index.
-	ListExamples(id string, max int) ([]ToolExample, error)
+	ListExamples(id string, maxExamples int) ([]ToolExample, error)
 }
 
 // StoreOptions configures the behavior of a Store implementation.
@@ -280,19 +280,19 @@ func (s *InMemoryStore) DescribeTool(id string, level DetailLevel) (ToolDoc, err
 	if level == DetailFull {
 		result.Notes = notes
 		result.ExternalRefs = externalRefs
-		// Apply MaxExamples cap
-		if maxExamples > 0 && len(examples) > maxExamples {
-			examples = examples[:maxExamples]
-		}
+	// Apply MaxExamples cap
+	if maxExamples > 0 && len(examples) > maxExamples {
+		examples = examples[:maxExamples]
+	}
 		result.Examples = examples
 	}
 
 	return result, nil
 }
 
-// ListExamples returns up to max examples for a tool.
-// The effective limit is min(max, MaxExamples) when both are set.
-func (s *InMemoryStore) ListExamples(id string, max int) ([]ToolExample, error) {
+// ListExamples returns up to maxExamples for a tool.
+// The effective limit is min(maxExamples, MaxExamples) when both are set.
+func (s *InMemoryStore) ListExamples(id string, maxExamples int) ([]ToolExample, error) {
 	// Copy examples under lock to prevent races
 	var examples []ToolExample
 	var hasDoc bool
@@ -302,7 +302,7 @@ func (s *InMemoryStore) ListExamples(id string, max int) ([]ToolExample, error) 
 		hasDoc = true
 		examples = copyExamples(docRec.examples)
 	}
-	maxExamples := s.maxExamples
+	defaultMax := s.maxExamples
 	s.mu.RUnlock()
 
 	// Check if tool exists in index or via resolver
@@ -328,11 +328,11 @@ func (s *InMemoryStore) ListExamples(id string, max int) ([]ToolExample, error) 
 		return []ToolExample{}, nil
 	}
 
-	// Compute effective limit: min(max, maxExamples) when both > 0
-	effectiveMax := max
-	if maxExamples > 0 {
-		if effectiveMax <= 0 || maxExamples < effectiveMax {
-			effectiveMax = maxExamples
+	// Compute effective limit: min(maxExamples, defaultMax) when both > 0
+	effectiveMax := maxExamples
+	if defaultMax > 0 {
+		if effectiveMax <= 0 || defaultMax < effectiveMax {
+			effectiveMax = defaultMax
 		}
 	}
 

@@ -218,7 +218,7 @@ func TestDescribeTool_ResolverErrorPropagation(t *testing.T) {
 	resolverErr := errors.New("resolver failure")
 
 	store := NewInMemoryStore(StoreOptions{
-		ToolResolver: func(id string) (*toolmodel.Tool, error) {
+		ToolResolver: func(_ string) (*toolmodel.Tool, error) {
 			return nil, resolverErr
 		},
 	})
@@ -251,7 +251,7 @@ func TestDescribeTool_SummaryResolverErrorPropagation(t *testing.T) {
 	resolverErr := errors.New("resolver failure")
 
 	store := NewInMemoryStore(StoreOptions{
-		ToolResolver: func(id string) (*toolmodel.Tool, error) {
+		ToolResolver: func(_ string) (*toolmodel.Tool, error) {
 			return nil, resolverErr
 		},
 	})
@@ -531,7 +531,7 @@ func TestListExamples_ResolverErrorPropagation(t *testing.T) {
 	resolverErr := errors.New("resolver failure")
 
 	store := NewInMemoryStore(StoreOptions{
-		ToolResolver: func(id string) (*toolmodel.Tool, error) {
+		ToolResolver: func(_ string) (*toolmodel.Tool, error) {
 			return nil, resolverErr
 		},
 	})
@@ -1000,7 +1000,7 @@ func TestConcurrentAccess(t *testing.T) {
 
 	// Concurrent writes
 	for i := 0; i < 5; i++ {
-		go func(n int) {
+		go func(_ int) {
 			for j := 0; j < 50; j++ {
 				if err := store.RegisterDoc("test", DocEntry{Summary: "updated"}); err != nil {
 					errCh <- err
