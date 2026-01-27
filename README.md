@@ -26,6 +26,14 @@ go get github.com/jonwraymond/tooldocs
 ## Usage (with toolindex)
 
 ```go
+import (
+  "fmt"
+
+  "github.com/jonwraymond/tooldocs"
+  "github.com/jonwraymond/toolindex"
+  "github.com/jonwraymond/toolmodel"
+)
+
 idx := toolindex.NewInMemoryIndex()
 
 tool := toolmodel.Tool{Namespace: "tickets"}
@@ -60,6 +68,13 @@ examples, err := store.ListExamples("tickets:create", 2)
 Use this when you do not want a hard dependency on `toolindex`.
 
 ```go
+import (
+  "fmt"
+
+  "github.com/jonwraymond/tooldocs"
+  "github.com/jonwraymond/toolmodel"
+)
+
 store := tooldocs.NewInMemoryStore(tooldocs.StoreOptions{
   ToolResolver: func(id string) (*toolmodel.Tool, error) {
     if id != "tickets:create" {
@@ -105,3 +120,13 @@ result shapes.
 ## Concurrency
 
 `InMemoryStore` is safe for concurrent use.
+
+## Version compatibility (current tags)
+
+- `toolmodel`: `v0.1.0`
+- `toolindex`: `v0.1.1`
+- `tooldocs`: `v0.1.1`
+- `toolrun`: `v0.1.0`
+- `toolcode`: `v0.1.0`
+
+These versions reflect the aligned baseline across the tool libraries.
