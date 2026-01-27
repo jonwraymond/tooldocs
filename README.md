@@ -121,15 +121,9 @@ result shapes.
 
 `InMemoryStore` is safe for concurrent use.
 
-## Version compatibility (current tags)
+## Version compatibility
 
-- `toolmodel`: `v0.1.0`
-- `toolindex`: `v0.1.2`
-- `tooldocs`: `v0.1.2`
-- `toolrun`: `v0.1.1`
-- `toolcode`: `v0.1.1`
-- `toolruntime`: `v0.1.1`
-- `toolsearch`: `v0.1.1`
-- `metatools-mcp`: `v0.1.4`
+See `VERSIONS.md` for the authoritative, auto-generated compatibility matrix.
+
 
 These versions reflect the aligned baseline across the tool libraries.
