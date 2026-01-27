@@ -21,6 +21,20 @@ func makeToolWithSchema(name, namespace, description string, schema map[string]a
 	return t
 }
 
+func mustRegisterDoc(t *testing.T, store *InMemoryStore, id string, entry DocEntry) {
+	t.Helper()
+	if err := store.RegisterDoc(id, entry); err != nil {
+		t.Fatalf("RegisterDoc failed: %v", err)
+	}
+}
+
+func mustRegisterExamples(t *testing.T, store *InMemoryStore, id string, examples []ToolExample) {
+	t.Helper()
+	if err := store.RegisterExamples(id, examples); err != nil {
+		t.Fatalf("RegisterExamples failed: %v", err)
+	}
+}
+
 func TestDetailLevelConstants(t *testing.T) {
 	// Verify constant values match PRD
 	if DetailSummary != "summary" {
@@ -56,7 +70,7 @@ func TestRegisterDoc(t *testing.T) {
 		},
 	}
 
-	store.RegisterDoc("test-tool", entry)
+	mustRegisterDoc(t, store, "test-tool", entry)
 
 	// Verify registration
 	store.mu.RLock()
@@ -94,7 +108,7 @@ func TestRegisterDoc_Truncation(t *testing.T) {
 		},
 	}
 
-	store.RegisterDoc("test-tool", entry)
+	mustRegisterDoc(t, store, "test-tool", entry)
 
 	store.mu.RLock()
 	record := store.docs["test-tool"]
@@ -116,7 +130,7 @@ func TestRegisterDoc_Truncation(t *testing.T) {
 
 func TestDescribeTool_Summary_WithDocOnly(t *testing.T) {
 	store := NewInMemoryStore(StoreOptions{})
-	store.RegisterDoc("my-tool", DocEntry{Summary: "My tool does things"})
+	mustRegisterDoc(t, store, "my-tool", DocEntry{Summary: "My tool does things"})
 
 	doc, err := store.DescribeTool("my-tool", DetailSummary)
 	if err != nil {
@@ -276,7 +290,7 @@ func TestDescribeTool_Schema(t *testing.T) {
 	}
 
 	store := NewInMemoryStore(StoreOptions{Index: idx})
-	store.RegisterDoc("api:search", DocEntry{
+	mustRegisterDoc(t, store, "api:search", DocEntry{
 		Summary: "Custom summary",
 		Notes:   "These notes should not appear at schema level",
 	})
@@ -337,7 +351,7 @@ func TestDescribeTool_Full(t *testing.T) {
 	}
 
 	store := NewInMemoryStore(StoreOptions{Index: idx})
-	store.RegisterDoc("tickets:create", DocEntry{
+	mustRegisterDoc(t, store, "tickets:create", DocEntry{
 		Summary:      "Create a new ticket",
 		Notes:        "Requires authentication. Rate limited to 100/min.",
 		ExternalRefs: []string{"https://docs.example.com/tickets"},
@@ -391,7 +405,7 @@ func TestDescribeTool_NotFound(t *testing.T) {
 
 func TestDescribeTool_InvalidLevel(t *testing.T) {
 	store := NewInMemoryStore(StoreOptions{})
-	store.RegisterDoc("test", DocEntry{Summary: "test"})
+	mustRegisterDoc(t, store, "test", DocEntry{Summary: "test"})
 
 	_, err := store.DescribeTool("test", "invalid")
 	if err == nil {
@@ -404,7 +418,7 @@ func TestDescribeTool_InvalidLevel(t *testing.T) {
 
 func TestListExamples(t *testing.T) {
 	store := NewInMemoryStore(StoreOptions{})
-	store.RegisterDoc("my-tool", DocEntry{
+	mustRegisterDoc(t, store, "my-tool", DocEntry{
 		Summary: "test",
 		Examples: []ToolExample{
 			{Title: "Ex1", Description: "First"},
@@ -456,7 +470,7 @@ func TestListExamples_WithIndex(t *testing.T) {
 	}
 
 	store := NewInMemoryStore(StoreOptions{Index: idx})
-	store.RegisterExamples("ns:my-tool", []ToolExample{
+	mustRegisterExamples(t, store, "ns:my-tool", []ToolExample{
 		{Title: "Example", Description: "Test"},
 	})
 
@@ -656,10 +670,12 @@ func TestToolDoc_MCPShapeMapping(t *testing.T) {
 		Kind:  toolmodel.BackendKindLocal,
 		Local: &toolmodel.LocalBackend{Name: "h"},
 	}
-	idx.RegisterTool(tool, backend)
+	if err := idx.RegisterTool(tool, backend); err != nil {
+		t.Fatalf("failed to register tool: %v", err)
+	}
 
 	store := NewInMemoryStore(StoreOptions{Index: idx})
-	store.RegisterDoc("api:search", DocEntry{
+	mustRegisterDoc(t, store, "api:search", DocEntry{
 		Summary:      "Search for results",
 		Notes:        "Pagination via cursor",
 		ExternalRefs: []string{"https://api.example.com/docs/search"},
@@ -673,7 +689,10 @@ func TestToolDoc_MCPShapeMapping(t *testing.T) {
 		},
 	})
 
-	doc, _ := store.DescribeTool("api:search", DetailFull)
+	doc, err := store.DescribeTool("api:search", DetailFull)
+	if err != nil {
+		t.Fatalf("DescribeTool failed: %v", err)
+	}
 
 	// Verify MCP describe_tool shape:
 	// - Tool object (InputSchema, OutputSchema, Annotations)
@@ -696,7 +715,10 @@ func TestToolDoc_MCPShapeMapping(t *testing.T) {
 
 	// Verify MCP list_tool_examples shape:
 	// - examples: [ { title, description, args, resultHint } ]
-	examples, _ := store.ListExamples("api:search", 10)
+	examples, err := store.ListExamples("api:search", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if len(examples) == 0 {
 		t.Fatal("no examples returned")
 	}
@@ -709,7 +731,7 @@ func TestToolDoc_MCPShapeMapping(t *testing.T) {
 func TestDescribeTool_SchemaRequiresTool(t *testing.T) {
 	// Schema/full levels require Tool from index, even if docs exist
 	store := NewInMemoryStore(StoreOptions{})
-	store.RegisterDoc("doc-only", DocEntry{
+	mustRegisterDoc(t, store, "doc-only", DocEntry{
 		Summary: "Has summary",
 		Notes:   "Has notes",
 	})
@@ -741,7 +763,7 @@ func TestDescribeTool_SchemaRequiresTool(t *testing.T) {
 
 func TestMaxExamples_ListExamples(t *testing.T) {
 	store := NewInMemoryStore(StoreOptions{MaxExamples: 2})
-	store.RegisterDoc("test", DocEntry{
+	mustRegisterDoc(t, store, "test", DocEntry{
 		Summary: "test",
 		Examples: []ToolExample{
 			{Title: "Ex1"}, {Title: "Ex2"}, {Title: "Ex3"}, {Title: "Ex4"},
@@ -749,19 +771,28 @@ func TestMaxExamples_ListExamples(t *testing.T) {
 	})
 
 	// max=0 should use MaxExamples (2)
-	examples, _ := store.ListExamples("test", 0)
+	examples, err := store.ListExamples("test", 0)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if len(examples) != 2 {
 		t.Errorf("max=0: len=%d, want 2 (MaxExamples)", len(examples))
 	}
 
 	// max=1 should use 1 (lower than MaxExamples)
-	examples, _ = store.ListExamples("test", 1)
+	examples, err = store.ListExamples("test", 1)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if len(examples) != 1 {
 		t.Errorf("max=1: len=%d, want 1", len(examples))
 	}
 
 	// max=10 should use MaxExamples (2, lower than 10)
-	examples, _ = store.ListExamples("test", 10)
+	examples, err = store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if len(examples) != 2 {
 		t.Errorf("max=10: len=%d, want 2 (MaxExamples)", len(examples))
 	}
@@ -774,17 +805,22 @@ func TestMaxExamples_DescribeTool(t *testing.T) {
 		Kind:  toolmodel.BackendKindLocal,
 		Local: &toolmodel.LocalBackend{Name: "h"},
 	}
-	idx.RegisterTool(tool, backend)
+	if err := idx.RegisterTool(tool, backend); err != nil {
+		t.Fatalf("failed to register tool: %v", err)
+	}
 
 	store := NewInMemoryStore(StoreOptions{Index: idx, MaxExamples: 2})
-	store.RegisterDoc("ns:test", DocEntry{
+	mustRegisterDoc(t, store, "ns:test", DocEntry{
 		Summary: "test",
 		Examples: []ToolExample{
 			{Title: "Ex1"}, {Title: "Ex2"}, {Title: "Ex3"},
 		},
 	})
 
-	doc, _ := store.DescribeTool("ns:test", DetailFull)
+	doc, err := store.DescribeTool("ns:test", DetailFull)
+	if err != nil {
+		t.Fatalf("DescribeTool failed: %v", err)
+	}
 	if len(doc.Examples) != 2 {
 		t.Errorf("full examples len=%d, want 2 (MaxExamples)", len(doc.Examples))
 	}
@@ -794,7 +830,7 @@ func TestArgsDeepCopy_Isolation(t *testing.T) {
 	store := NewInMemoryStore(StoreOptions{})
 
 	originalArgs := map[string]any{"key": "original"}
-	store.RegisterDoc("test", DocEntry{
+	mustRegisterDoc(t, store, "test", DocEntry{
 		Summary:  "test",
 		Examples: []ToolExample{{Title: "Ex", Args: originalArgs}},
 	})
@@ -803,7 +839,10 @@ func TestArgsDeepCopy_Isolation(t *testing.T) {
 	originalArgs["key"] = "mutated"
 
 	// Stored value should be unaffected
-	examples, _ := store.ListExamples("test", 10)
+	examples, err := store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if examples[0].Args["key"] != "original" {
 		t.Errorf("stored args mutated: got %v, want 'original'", examples[0].Args["key"])
 	}
@@ -812,7 +851,10 @@ func TestArgsDeepCopy_Isolation(t *testing.T) {
 	examples[0].Args["key"] = "returned-mutated"
 
 	// Subsequent retrieval should be unaffected
-	examples2, _ := store.ListExamples("test", 10)
+	examples2, err := store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	if examples2[0].Args["key"] != "original" {
 		t.Errorf("returned args not isolated: got %v, want 'original'", examples2[0].Args["key"])
 	}
@@ -829,7 +871,7 @@ func TestArgsDeepCopy_NestedStructures(t *testing.T) {
 		"number":       42,
 	}
 
-	store.RegisterDoc("test", DocEntry{
+	mustRegisterDoc(t, store, "test", DocEntry{
 		Summary:  "test",
 		Examples: []ToolExample{{Title: "Ex", Args: originalArgs}},
 	})
@@ -839,7 +881,10 @@ func TestArgsDeepCopy_NestedStructures(t *testing.T) {
 	nestedSlice[0] = "mutated"
 
 	// Stored nested values should be unaffected
-	examples, _ := store.ListExamples("test", 10)
+	examples, err := store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	innerMap := examples[0].Args["nested_map"].(map[string]any)
 	if innerMap["inner"] != "value" {
 		t.Errorf("nested map mutated: got %v, want 'value'", innerMap["inner"])
@@ -854,7 +899,10 @@ func TestArgsDeepCopy_NestedStructures(t *testing.T) {
 	innerSlice[0] = "returned-mutated"
 
 	// Subsequent retrieval should be unaffected
-	examples2, _ := store.ListExamples("test", 10)
+	examples2, err := store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 	innerMap2 := examples2[0].Args["nested_map"].(map[string]any)
 	if innerMap2["inner"] != "value" {
 		t.Errorf("returned nested map not isolated: got %v, want 'value'", innerMap2["inner"])
@@ -880,7 +928,7 @@ func TestArgsDeepCopy_TypedSlicesAndMaps(t *testing.T) {
 		"string_map":   typedStringMap,
 	}
 
-	store.RegisterDoc("test", DocEntry{
+	mustRegisterDoc(t, store, "test", DocEntry{
 		Summary:  "test",
 		Examples: []ToolExample{{Title: "Ex", Args: originalArgs}},
 	})
@@ -891,7 +939,10 @@ func TestArgsDeepCopy_TypedSlicesAndMaps(t *testing.T) {
 	typedStringMap["key"] = "mutated"
 
 	// Stored values should be unaffected and normalized to MCP shapes
-	examples, _ := store.ListExamples("test", 10)
+	examples, err := store.ListExamples("test", 10)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
 
 	// Check string slice - normalized to []any
 	if ss, ok := examples[0].Args["string_slice"].([]any); ok {
@@ -930,13 +981,18 @@ func TestConcurrentAccess(t *testing.T) {
 	}
 
 	done := make(chan bool)
+	errCh := make(chan error, 100)
 
 	// Concurrent reads
 	for i := 0; i < 10; i++ {
 		go func() {
 			for j := 0; j < 100; j++ {
-				store.DescribeTool("test", DetailSummary)
-				store.ListExamples("test", 10)
+				if _, err := store.DescribeTool("test", DetailSummary); err != nil {
+					errCh <- err
+				}
+				if _, err := store.ListExamples("test", 10); err != nil {
+					errCh <- err
+				}
 			}
 			done <- true
 		}()
@@ -946,8 +1002,12 @@ func TestConcurrentAccess(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go func(n int) {
 			for j := 0; j < 50; j++ {
-				store.RegisterDoc("test", DocEntry{Summary: "updated"})
-				store.RegisterExamples("test", []ToolExample{{Title: "ex"}})
+				if err := store.RegisterDoc("test", DocEntry{Summary: "updated"}); err != nil {
+					errCh <- err
+				}
+				if err := store.RegisterExamples("test", []ToolExample{{Title: "ex"}}); err != nil {
+					errCh <- err
+				}
 			}
 			done <- true
 		}(i)
@@ -956,6 +1016,11 @@ func TestConcurrentAccess(t *testing.T) {
 	// Wait for all goroutines
 	for i := 0; i < 15; i++ {
 		<-done
+	}
+
+	close(errCh)
+	for err := range errCh {
+		t.Errorf("concurrent access error: %v", err)
 	}
 }
 
