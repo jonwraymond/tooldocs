@@ -27,6 +27,12 @@ sequenceDiagram
   Docs-->>Client: ToolDoc (schema)
 ```
 
+## Progressive disclosure contract
+
+- `DetailSummary`: short text only
+- `DetailSchema`: full tool + derived schema info
+- `DetailFull`: schema + notes + examples
+
 ## Resolution modes
 
 - via `toolindex.Index` (preferred)

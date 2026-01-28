@@ -3,6 +3,12 @@
 `tooldocs` provides progressive documentation and examples for tools defined in
 `toolmodel` and discovered via `toolindex`.
 
+## Motivation
+
+- **Token efficiency**: fetch details only when needed
+- **Better tool usage**: schema + examples reduce call errors
+- **Usability**: humans and agents see consistent, structured guidance
+
 ## Key APIs
 
 - `Store` interface
@@ -24,6 +30,12 @@ _ = store.RegisterDoc("github:get_repo", tooldocs.DocEntry{
 doc, _ := store.DescribeTool("github:get_repo", tooldocs.DetailSchema)
 examples, _ := store.ListExamples("github:get_repo", 2)
 ```
+
+## Usability notes
+
+- Summary and schema are safe defaults for discovery
+- Examples are capped to prevent token blowups
+- Notes and external refs are optional but highly recommended
 
 ## Next
 
