@@ -3,6 +3,12 @@
 `tooldocs` provides progressive documentation and examples for tools defined in
 `toolmodel` and discovered via `toolindex`.
 
+[![Docs](https://img.shields.io/badge/docs-ai--tools--stack-blue)](https://jonwraymond.github.io/ai-tools-stack/)
+
+## Deep dives
+- Design Notes: `design-notes.md`
+- User Journey: `user-journey.md`
+
 ## Motivation
 
 - **Token efficiency**: fetch details only when needed
@@ -45,6 +51,3 @@ examples, _ := store.ListExamples("github:get_repo", 2)
 - Design Notes: `design-notes.md`
 - User Journey: `user-journey.md`
 
-!!! note "Deep dives"
-    - Design Notes: `design-notes.md`
-    - User Journey: `user-journey.md`
