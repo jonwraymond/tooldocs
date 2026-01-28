@@ -280,10 +280,10 @@ func (s *InMemoryStore) DescribeTool(id string, level DetailLevel) (ToolDoc, err
 	if level == DetailFull {
 		result.Notes = notes
 		result.ExternalRefs = externalRefs
-	// Apply MaxExamples cap
-	if maxExamples > 0 && len(examples) > maxExamples {
-		examples = examples[:maxExamples]
-	}
+		// Apply MaxExamples cap
+		if maxExamples > 0 && len(examples) > maxExamples {
+			examples = examples[:maxExamples]
+		}
 		result.Examples = examples
 	}
 
