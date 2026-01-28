@@ -3,11 +3,13 @@
 `tooldocs` provides progressive documentation and examples for tools defined in
 `toolmodel` and discovered via `toolindex`.
 
-## What this library provides
+## Key APIs
 
-- Detail tiers: summary -> schema -> full
-- Example payloads with size caps
-- Optional tool resolution through `toolindex` or a custom resolver
+- `Store` interface
+- `InMemoryStore` implementation
+- `DescribeTool` (summary/schema/full)
+- `ListExamples`
+- `DocEntry` + `ToolExample`
 
 ## Quickstart
 
@@ -25,6 +27,6 @@ examples, _ := store.ListExamples("github:get_repo", 2)
 
 ## Next
 
-- Detail levels and data flow: `architecture.md`
+- Detail tiers and resolution: `architecture.md`
 - Registration and caps: `usage.md`
-- Example docs + examples: `examples.md`
+- Examples: `examples.md`

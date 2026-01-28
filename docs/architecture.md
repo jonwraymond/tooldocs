@@ -3,25 +3,31 @@
 `tooldocs` adds a documentation layer on top of `toolmodel`.
 It does not change schemas; it augments them with guidance and examples.
 
+## Tiered disclosure
+
 ```mermaid
 flowchart LR
-  A[toolindex] --> B[tooldocs]
-  B --> C[describe_tool]
-  B --> D[list_tool_examples]
-
-  subgraph Tiers
-    S[summary]
-    H[schema]
-    F[full]
-  end
-  B --> S
-  B --> H
-  B --> F
+  A[DescribeTool] --> B[summary]
+  A --> C[schema]
+  A --> D[full]
+  D --> E[examples]
 ```
 
-## Resolution
+## Resolution sequence
 
-`tooldocs` can resolve tools in two ways:
+```mermaid
+sequenceDiagram
+  participant Client
+  participant Docs as tooldocs
+  participant Index as toolindex
+
+  Client->>Docs: DescribeTool(id, schema)
+  Docs->>Index: GetTool(id)
+  Index-->>Docs: tool
+  Docs-->>Client: ToolDoc (schema)
+```
+
+## Resolution modes
 
 - via `toolindex.Index` (preferred)
 - via a custom `ToolResolver` function
