@@ -1,5 +1,7 @@
 # tooldocs
 
+[![Docs](https://img.shields.io/badge/docs-ai--tools--stack-blue)](https://jonwraymond.github.io/ai-tools-stack/)
+
 Progressive, MCP-aligned documentation for tools defined in `toolmodel` and
 discovered via `toolindex`.
 
