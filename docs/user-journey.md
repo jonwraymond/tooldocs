@@ -4,23 +4,7 @@ This journey shows how `tooldocs` provides progressive disclosure in an end-to-e
 
 ## End-to-end flow (stack view)
 
-```mermaid
-sequenceDiagram
-  participant Agent
-  participant MCP as metatools-mcp
-  participant Index as toolindex
-  participant Docs as tooldocs
-  participant Runner as toolrun
-
-  Agent->>MCP: search_tools("create issue")
-  MCP->>Index: Search
-  Agent->>MCP: describe_tool(tool_id, schema)
-  MCP->>Docs: DescribeTool(schema)
-  Agent->>MCP: describe_tool(tool_id, full)
-  MCP->>Docs: DescribeTool(full)
-  Agent->>MCP: run_tool(tool_id, args)
-  MCP->>Runner: Run
-```
+![Diagram](assets/diagrams/user-journey.svg)
 
 ## Step-by-step
 

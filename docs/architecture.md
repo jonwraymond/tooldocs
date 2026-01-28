@@ -5,27 +5,15 @@ It does not change schemas; it augments them with guidance and examples.
 
 ## Tiered disclosure
 
-```mermaid
-flowchart LR
-  A[DescribeTool] --> B[summary]
-  A --> C[schema]
-  A --> D[full]
-  D --> E[examples]
-```
+
+![Diagram](assets/diagrams/tiered-disclosure.svg)
+
 
 ## Resolution sequence
 
-```mermaid
-sequenceDiagram
-  participant Client
-  participant Docs as tooldocs
-  participant Index as toolindex
 
-  Client->>Docs: DescribeTool(id, schema)
-  Docs->>Index: GetTool(id)
-  Index-->>Docs: tool
-  Docs-->>Client: ToolDoc (schema)
-```
+![Diagram](assets/diagrams/tiered-disclosure.svg)
+
 
 ## Progressive disclosure contract
 
