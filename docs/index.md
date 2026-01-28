@@ -42,3 +42,5 @@ examples, _ := store.ListExamples("github:get_repo", 2)
 - Detail tiers and resolution: `architecture.md`
 - Registration and caps: `usage.md`
 - Examples: `examples.md`
+- Design Notes: `design-notes.md`
+- User Journey: `user-journey.md`
