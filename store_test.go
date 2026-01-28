@@ -798,6 +798,25 @@ func TestMaxExamples_ListExamples(t *testing.T) {
 	}
 }
 
+func TestMaxExamples_RegisterExamples(t *testing.T) {
+	store := NewInMemoryStore(StoreOptions{MaxExamples: 2})
+
+	err := store.RegisterExamples("test", []ToolExample{
+		{Title: "Ex1"}, {Title: "Ex2"}, {Title: "Ex3"},
+	})
+	if err != nil {
+		t.Fatalf("RegisterExamples failed: %v", err)
+	}
+
+	examples, err := store.ListExamples("test", 0)
+	if err != nil {
+		t.Fatalf("ListExamples failed: %v", err)
+	}
+	if len(examples) != 2 {
+		t.Errorf("len=%d, want 2 (MaxExamples)", len(examples))
+	}
+}
+
 func TestMaxExamples_DescribeTool(t *testing.T) {
 	idx := toolindex.NewInMemoryIndex()
 	tool := makeToolWithSchema("test", "ns", "desc", map[string]any{"type": "object"})

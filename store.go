@@ -149,8 +149,14 @@ func (s *InMemoryStore) RegisterDoc(id string, entry DocEntry) error {
 //
 // Returns ErrArgsTooLarge if any example's Args exceeds MaxArgsDepth or MaxArgsKeys.
 func (s *InMemoryStore) RegisterExamples(id string, examples []ToolExample) error {
-	truncated := make([]ToolExample, len(examples))
-	for i, ex := range examples {
+	limit := len(examples)
+	if s.maxExamples > 0 && limit > s.maxExamples {
+		limit = s.maxExamples
+	}
+
+	truncated := make([]ToolExample, limit)
+	for i := 0; i < limit; i++ {
+		ex := examples[i]
 		// Deep copy first (normalizes types to map[string]any)
 		argsCopy := deepCopyArgs(ex.Args)
 
