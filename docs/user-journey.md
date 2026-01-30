@@ -6,6 +6,72 @@ This journey shows how `tooldocs` provides progressive disclosure in an end-to-e
 
 ![Diagram](assets/diagrams/user-journey.svg)
 
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#d69e2e', 'primaryTextColor': '#fff'}}}%%
+flowchart TB
+    subgraph discovery["Phase 1: Discovery"]
+        Search["🔍 search_tools(query)"]
+        Summaries["📋 Summary[]<br/><small>ID, Name, Tags only</small>"]
+    end
+
+    subgraph schema["Phase 2: Schema"]
+        DescSchema["📐 describe_tool(id, 'schema')"]
+        SchemaDoc["📚 ToolDoc<br/><small>+ InputSchema<br/>+ OutputSchema</small>"]
+    end
+
+    subgraph full["Phase 3: Full"]
+        DescFull["📖 describe_tool(id, 'full')"]
+        FullDoc["📚 ToolDoc<br/><small>+ Notes<br/>+ Examples<br/>+ ExternalRefs</small>"]
+    end
+
+    subgraph examples["Examples"]
+        ListEx["💡 list_tool_examples(id)"]
+        ExList["📋 ToolExample[]<br/><small>Args + ResultHint</small>"]
+    end
+
+    subgraph execution["Phase 4: Execute"]
+        Run["▶️ run_tool(id, args)"]
+    end
+
+    Search --> Summaries
+    Summaries -->|"select tool"| DescSchema --> SchemaDoc
+    SchemaDoc -->|"need guidance"| DescFull --> FullDoc
+    SchemaDoc -->|"need examples"| ListEx --> ExList
+    SchemaDoc --> Run
+    FullDoc --> Run
+    ExList --> Run
+
+    style discovery fill:#3182ce,stroke:#2c5282
+    style schema fill:#d69e2e,stroke:#b7791f,stroke-width:2px
+    style full fill:#6b46c1,stroke:#553c9a
+    style examples fill:#e53e3e,stroke:#c53030
+    style execution fill:#38a169,stroke:#276749
+```
+
+### Detail Levels
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#6b46c1'}}}%%
+flowchart LR
+    subgraph summary["DetailSummary"]
+        S["📋 1-2 line description<br/>🏷️ Tags<br/>📁 Namespace"]
+    end
+
+    subgraph schema["DetailSchema"]
+        SC["📋 Full description<br/>📐 Input schema<br/>📤 Output schema"]
+    end
+
+    subgraph full["DetailFull"]
+        F["📋 Everything<br/>📝 Notes<br/>💡 Examples<br/>🔗 ExternalRefs"]
+    end
+
+    summary -->|"~50 tokens"| schema -->|"~200 tokens"| full
+
+    style summary fill:#38a169,stroke:#276749
+    style schema fill:#d69e2e,stroke:#b7791f
+    style full fill:#6b46c1,stroke:#553c9a
+```
+
 ## Step-by-step
 
 1. **Discovery**: agent finds candidate tools via `search_tools`.
