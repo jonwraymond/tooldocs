@@ -9,6 +9,14 @@ type Store interface {
 }
 ```
 
+### Store contract
+
+- Concurrency: implementations are safe for concurrent use.
+- Errors: use `errors.Is` with `ErrNotFound`, `ErrInvalidDetail`, `ErrNoTool`, `ErrArgsTooLarge`.
+- Ownership: returned docs/examples are caller-owned snapshots.
+- Determinism: identical inputs over unchanged data yield stable results.
+- Nil/zero: empty IDs are treated as not found; `maxExamples <= 0` returns zero examples.
+
 ## Detail levels
 
 ```go
@@ -53,6 +61,12 @@ type SchemaInfo struct {
   Types    map[string][]string
 }
 ```
+
+### SchemaInfo contract
+
+- `Required` lists required fields from the input schema.
+- `Defaults` contains default values derived from schema defaults.
+- `Types` captures the observed JSON schema types per field (stable ordering not guaranteed).
 
 ## StoreOptions
 
